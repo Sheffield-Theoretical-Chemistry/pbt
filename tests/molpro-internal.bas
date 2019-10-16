@@ -1,3 +1,4 @@
+* This is an example of a Molpro internal (libmol) basis set, comments are lines starting with a star
 Zr  s ECP28MDF_AVDZ aug-cc-pVDZ-PP AVDZ-PP  :    9   5  1.09  1.09  1.09  8.08  9.09
  Peterson et al., Ref 43.                         
   0.53446000E+02  0.17098100E+02  0.10687500E+02  0.33913400E+01  0.78847500E+00

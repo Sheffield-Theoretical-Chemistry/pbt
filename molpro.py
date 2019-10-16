@@ -15,6 +15,77 @@ import sys
 import util
 from basclas import Basis
 
+def ParseInt(lines,set):
+    # Reads in Molpro internal (libmol) basis set format
+    # This is a fixed format, hence some extra variables are used to keep track of numbers
+    skipcount = 0
+    skipline = False
+    for count,line in enumerate(lines):
+        if (count == 0):
+            FirstRun = True
+            atomtype = None
+        # Remove the newlines and split into a list
+        ParseObj = line.replace("\n", "").split()
+# Debug statement - uncomment to print the line in list format
+        print(ParseObj)
+        # Skip over any comments - these start with a star in libmol
+        if (len(ParseObj[0]) != 0):
+            if (str(ParseObj[0][0]) == '*'):
+                skipcount += 1
+                continue
+        # Skip over the line if logic has detected it will be a comment
+        if skipline:
+            skipcount += 1
+            print("Skipping the line")
+            skipline = False
+            continue
+
+        # Trap the currently unsupported case of ECPs
+        if (len(ParseObj) > 1):
+            if (len(ParseObj[1]) > 1):
+                if ((len(ParseObj[1]) > 2) and (str(ParseObj[1][0:3]).lower() == 'ecp')):
+                    print("ECPs not yet supported")
+                    sys.exit()
+        
+        # Check if the line starts with an element
+        if (str(ParseObj[0]).lower() in util.periodicNames ):
+            # The next line will be a comment, so flag it to be skipped
+            skipline = True
+            # First entry on the line is the atom type
+            currentatom = str(ParseObj[0]).upper()
+            if (currentatom != atomtype):
+                # Looks like we have a new atomtype
+                atomtype = ''.join(currentatom)
+#                print("New atom type is ", atomtype)
+                # Do we need to change FirstRun or some other logic change flag here
+                # This would be adding support for basis sets for multiple atoms 
+            # Next entry is the orbital angular momentum
+            orbAng = str(ParseObj[1]).lower()
+            # There is then a series of basis set names / aliases, this is currently skipped by jumping to the colon character
+            try:
+                jumpPoint = ParseObj.index(':')
+            except ValueError:
+                print("Logic error when parsing line:")
+                print(line, end="")
+                print("Didn't find the colon character.")
+                sys.exit()
+            # Grab the total number of primitives
+            totalPrims = int(ParseObj[jumpPoint+1])
+            # Grab the total number post-contraction
+            totalContrac = int(ParseObj[jumpPoint+2])
+            # Remaining entries on the line are the contraction patterns
+            conPatterns = []
+            counter = jumpPoint+3            
+            while counter < len(ParseObj):
+                conPatterns.append(ParseObj[counter])
+                counter += 1
+            print(conPatterns)
+        else:
+            print("This looks like some other sort of line")
+
+
+#---------------------------------------------------------------------------------------------------
+
 def ParseExt(lines,set):
     # Reads in Molpro external basis set format
     # Extract data from lines
