@@ -1,0 +1,7 @@
+These scripts effectively 'short-circuit' pbt by having the input and output basis sets formats specified.
+For example, molint2molint expects Molpro internal format for the input, and will write the same format.
+
+For the scripts to run, the top-level pbt directory needs to be in your PYTHONPATH, which can be set using something like (in bash):
+export PYTHONPATH=$PYTHONPATH:/Users/jgh/GoogleDrive/pbt
+
+You may also want to add the pbt/scripts directory to your shell PATH.

@@ -1,0 +1,63 @@
+#Some utilities that might be used in various places
+periodicNames = {'h': 'hydrogen', 'he': 'helium', 'li': 'lithium', 'be': 'beryllium', 'b': 'boron', 'c': 'carbon', 'n': 'nitrogen', 'o': 'oxygen', 'f': 'fluorine', 'ne': 'neon', 'na': 'sodium', 'mg': 'magnesium', 'al': 'aluminium', 'si': 'silicon', 'p': 'phosphorus', 's': 'sulfur', 'cl': 'chlorine', 'ar': 'argon', 'k': 'potassium', 'ca': 'calcium', 'sc': 'scandium', 'ti': 'titanium', 'v': 'vanadium', 'cr': 'chromium', 'mn': 'manganese', 'fe': 'iron', 'co': 'cobalt', 'ni': 'nickel', 'cu': 'copper', 'zn': 'zinc', 'ga': 'gallium', 'ge': 'germanium', 'as': 'arsenic', 'se': 'selenium', 'br': 'bromine', 'kr': 'krypton', 'rb': 'rubidium', 'sr': 'strontium', 'y': 'yttrium', 'zr': 'zirconium', 'nb': 'niobium', 'mo': 'molybdenum', 'tc': 'technetium', 'ru': 'ruthenium', 'rh': 'rhodium', 'pd': 'palladium', 'ag': 'silver', 'cd': 'cadmium', 'in': 'indium', 'sn': 'tin', 'sb': 'antimony', 'te': 'tellurium', 'i': 'iodine', 'xe': 'xenon', 'cs': 'caesium', 'ba': 'barium', 'la': 'lanthanum', 'ce': 'cerium', 'pr': 'praseodymium', 'nd': 'neodymium', 'pm': 'promethium', 'sm': 'samarium', 'eu': 'europium', 'gd': 'gadolinium', 'tb': 'terbium', 'dy': 'dysprosium', 'ho': 'holmium', 'er': 'erbium', 'tm': 'thulium', 'yb': 'ytterbium', 'lu': 'lutetium', 'hf': 'hafnium', 'ta': 'tantalum', 'w': 'tungsten', 're': 'rhenium', 'os': 'osmium', 'ir': 'iridium', 'pt': 'platinum', 'au': 'gold', 'hg': 'mercury', 'tl': 'thallium', 'pb': 'lead', 'bi': 'bismuth', 'po': 'polonium', 'at': 'astatine', 'rn': 'radon', 'fr': 'francium', 'ra': 'radium', 'ac': 'actinium', 'th': 'thorium', 'pa': 'protactinium', 'u': 'uranium', 'np': 'neptunium', 'pu': 'plutonium', 'am': 'americium', 'cm': 'curium', 'bk': 'berkelium', 'cf': 'californium', 'es': 'einsteinium', 'fm': 'fermium', 'md': 'mendelevium', 'no': 'nobelium', 'lr': 'lawrencium', 'rf': 'rutherfordium', 'db': 'dubnium', 'sg': 'seaborgium', 'bh': 'bohrium', 'hs': 'hassium', 'mt': 'meitnerium', 'ds': 'darmstadtium', 'rg': 'roentgenium', 'cn': 'copernicium', 'uut': 'ununtrium', 'fl': 'flerovium', 'uup': 'ununpentium', 'lv': 'livermorium', 'uus': 'ununseptium', 'uuo': 'ununoctium'}
+
+# Dictionary of numerical values for orbital angular momentum. j is skipped as it is special (not sure if this
+# is done in Gaussian?). Assumed an alphabetical progression after that, skipping a second occurance of s/p.
+numEl = {'s': 0, 'p': 1, 'd': 2, 'f': 3, 'g': 4, 'h': 5, 'i': 6, 'k': 7, 'l': 8, 'm': 9, 'n': 10, 'o': 11,
+'q': 12, 'r': 13}
+
+def getMaxEl(set):
+#Determines the maximum angular momentum within a set, returning a list of numerical values
+    maxEl = []
+    El = 0
+    for entry in set:
+        if (entry.changeatom):
+            maxEl.append(El)
+            El = 0
+        if numEl.get(entry.el.lower()) > El:
+            El = numEl.get(entry.el.lower())
+    maxEl.append(El)
+    return maxEl
+
+def getPrim(set):
+#Calculates the number and type of the primitives in set, returns composition as the list lcomp
+    lcomp = []
+    comp = ""
+    for entry in set:
+        if (entry.changeatom):
+            lcomp.append(comp)
+            comp = ""
+        numexp = len(entry.exponents)
+        comp += str(numexp)
+        comp += entry.el.lower()
+    #Make sure we add the last composition to the list
+    lcomp.append(comp)
+    return lcomp
+
+def getContract(set):
+#Extracts the number and type of contracted functions in set, returning compositions as a list lcontcomp
+#Assumes that Basis.contraction will have one list for each contracted function
+    lcontcomp = []
+    contcomp = ""
+    for entry in set:
+        if (entry.changeatom):
+            lcontcomp.append(contcomp)
+            contcomp = ""
+        if (entry.contraction):
+            numexp = len(entry.contraction)
+        # If we have uncontracted exponents in addition to contracted
+        else:
+            numexp = len(entry.exponents)
+        contcomp += str(numexp)
+        contcomp += entry.el.lower()
+    lcontcomp.append(contcomp)
+    return lcontcomp
+
+def getElemName(element):
+#Converts a chemical symbol into the name of the element, returning the name
+    if (element.lower() not in periodicNames):
+        print('Element ', element.title(), ' not recognised')
+        name = 'Unknown'
+    else:
+        name = periodicNames.get(element.lower())
+    return name
