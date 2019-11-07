@@ -33,8 +33,8 @@ import molpro
 # Parse the lines and return basis set information in set
 molpro.ParseInt(lines,set)
 #Debug statement - return 'info' on all the entries in set - effectively dumps the basis to screen
-#for entry in set:
-#    print(entry.info())
+for entry in set:
+    print(entry.info())
 #
-#molpro.WriteExt(set,precis,outfile)
+molpro.WriteExt(set,precis,outfile)
 outfile.close()

@@ -20,6 +20,8 @@ def ParseInt(lines,set):
     # This is a fixed format, hence some extra variables are used to keep track of numbers
     skipcount = 0
     skipline = False
+    collectEls = False
+    coeffs=[]
     for count,line in enumerate(lines):
         if (count == 0):
             FirstRun = True
@@ -27,7 +29,7 @@ def ParseInt(lines,set):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-        print(ParseObj)
+#        print(ParseObj)
         # Skip over any comments - these start with a star in libmol
         if (len(ParseObj[0]) != 0):
             if (str(ParseObj[0][0]) == '*'):
@@ -36,7 +38,7 @@ def ParseInt(lines,set):
         # Skip over the line if logic has detected it will be a comment
         if skipline:
             skipcount += 1
-            print("Skipping the line")
+#            print("Skipping the line")
             skipline = False
             continue
 
@@ -51,14 +53,20 @@ def ParseInt(lines,set):
         if (str(ParseObj[0]).lower() in util.periodicNames ):
             # The next line will be a comment, so flag it to be skipped
             skipline = True
+            if collectEls:
+                # Time to process what we collected on the previous run
+                ProcessInt(set,atomtype,orbAng,totalPrims,totalContrac,conPatterns,coeffs)
+                # Reset coeffs ready for the next run
+                coeffs = []
+            else:
+                # Flag to start collecting values
+                collectEls = True
             # First entry on the line is the atom type
             currentatom = str(ParseObj[0]).upper()
             if (currentatom != atomtype):
                 # Looks like we have a new atomtype
                 atomtype = ''.join(currentatom)
 #                print("New atom type is ", atomtype)
-                # Do we need to change FirstRun or some other logic change flag here
-                # This would be adding support for basis sets for multiple atoms 
             # Next entry is the orbital angular momentum
             orbAng = str(ParseObj[1]).lower()
             # There is then a series of basis set names / aliases, this is currently skipped by jumping to the colon character
@@ -79,10 +87,46 @@ def ParseInt(lines,set):
             while counter < len(ParseObj):
                 conPatterns.append(ParseObj[counter])
                 counter += 1
-            print(conPatterns)
+#            print(conPatterns)
         else:
-            print("This looks like some other sort of line")
+            if collectEls:
+                i = 0
+                while i < len(ParseObj):
+                    coeffs.append(ParseObj[i])
+                    i += 1
 
+#Need to catch the case where we have the last entry in a file
+    if collectEls:
+        ProcessInt(set,atomtype,orbAng,totalPrims,totalContrac,conPatterns,coeffs)
+
+#---------------------------------------------------------------------------------------------------
+
+def ProcessInt(set,atomtype,orbAng,totalPrims,totalContrac,conPatterns,coeffs):
+    # Process the information parsed and write it out to set
+    # Keep track of where we are in this blob of coeffs
+    coeffCounter = totalPrims - 1
+    # Handle the contractions
+    counter = 0
+    fullContrac = []
+    while counter < totalContrac:
+        conLimits = conPatterns[counter].split(".")
+        conLength = int(conLimits[1]) - int(conLimits[0]) + 1
+        conRange = range(int(conLimits[0]), int(conLimits[1])+1)
+        thisContrac = []
+        i = 1
+        while i < (totalPrims+1):
+            if i in conRange:
+                coeffCounter += 1
+                thisContrac.append(coeffs[coeffCounter])
+            else:
+                thisContrac.append('0.0')
+            i += 1
+        # Debug statement, uncomment below to check the current contraction pattern
+#        print(thisContrac)
+        fullContrac.append(thisContrac)
+        counter += 1
+#    print(fullContrac)
+    set.append(Basis(atomtype, orbAng, coeffs[:totalPrims], fullContrac))
 
 #---------------------------------------------------------------------------------------------------
 
