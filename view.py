@@ -37,7 +37,7 @@ def ViewComp(set):
     goodToGo = False
     thisCompare = []
     # Remember blank offset for the atomList of ticklabels
-    atomList = ['']
+    atomList = []
     print("Using the first set as the template to determine available el.")
     for entry in set:
         if (entry.changeatom):
@@ -72,11 +72,12 @@ def ViewComp(set):
         ax.set_yscale('log')
         # Label with el
         ax.annotate(currentEl, xy=(0.95, 0.95), xycoords='axes fraction', size=15)
+        plt.xticks(np.arange(len(atomList)))
         ax.set_xticklabels(atomList)
         plt.show()
         # All done, reset thisCompare
         thisCompare = []
-        atomList = ['']
+        atomList = []
     if not goodToGo:
         print("Need more than one atom/set to be able to compare. Exiting.")
         sys.exit()
