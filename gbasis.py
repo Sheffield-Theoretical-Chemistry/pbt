@@ -15,6 +15,32 @@ import sys
 import util
 from basclas import Basis
 
+def ParseGbasis(lines,set):
+    # Reads in the GBASIS basis set format
+    # Currently targetting the exact format output by WriteGbasis, rather than the slightly different
+    # format used by Dave Feller.
+    coeffs = []
+    for count,line in enumerate(lines):
+        # Remove the newlines and split into a list
+        ParseObj = line.replace("\n", "").split()
+# Debug statement - uncomment to print the line in list format
+        print(ParseObj)
+        # To add: Skip over any comments - these start with a !
+
+        # On the first run through, the first line will define the element type
+        if (count==0):
+            atomType = None
+            chunkedStart = ParseObj[0].split(":")
+            if (str(chunkedStart[0]).lower() in util.periodicNames ):
+                atomType = str(chunkedStart[0]).upper()
+                print("Atom type is ", atomType)
+            else:
+                print("Unknown atom type, exiting.")
+                sys.exit()
+
+
+#---------------------------------------------------------------------------------------------------
+
 def WriteGbasis(set,precis,outfile):
     comp = util.getPrim(set)
     contcomp = util.getContract(set)
