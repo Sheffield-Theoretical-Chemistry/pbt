@@ -47,24 +47,24 @@ def WriteGbasis(set,precis,outfile):
         # Output if the entry (primitives in this el) is contracted
         if (entry.contraction):
             for count,prim in enumerate(entry.exponents):
-                outfile.write('%.6E' % (float(prim)))
+                outfile.write('{number:.{p}E}'.format(number=float(prim), p = precis-1))
                 #Loop through contractions
                 for pattern in entry.contraction:
                     # Catch incomplete contractions
                     if count >= len(pattern):
-                        outfile.write(' %.6E' %(0.0))
+                        outfile.write(' {number:.{p}E}'.format(number=float(0.0), p = precis-1))
                     else:
-                        outfile.write(' %.6E' % (float(pattern[count])))
+                        outfile.write(' {number:.{p}E}'.format(number=float(pattern[count]), p = precis-1))
                 # Print newline to finish each exponent
                 outfile.write('\n')
         else:
             for count,prim in enumerate(entry.exponents):
-                outfile.write('%.6E' % (float(prim)))
+                outfile.write('{number:.{p}E}'.format(number=float(prim), p = precis-1))
                 for i in range(len(entry.exponents)):
                     if i == count:
-                        outfile.write(' %.6E' %(1.0))
+                        outfile.write(' {number:.{p}E}'.format(number=float(1.0), p = precis-1))
                     else:
-                        outfile.write(' %.6E' %(0.0))
+                        outfile.write(' {number:.{p}E}'.format(number=float(0.0), p = precis-1))
                 outfile.write('\n')
 
     print("You may want to change 'BASNAME' to something more sensible.")
