@@ -6,10 +6,13 @@
 # Currently implemented:
 #
 # Basic writing of GBASIS files.
+# Basic reading of a GBASIS file.
 #
 # Known limitations:
 #
-# Currently the ability to read GBASIS files is missing. This would be incredibly useful to add.
+# Reading of GBASIS files only works for a single atom and single basis set.
+# When reading, comments and blank lines may break parser.
+# No reading of GBASIS files in Feller alternative format.
 #
 import sys
 import util
@@ -24,19 +27,74 @@ def ParseGbasis(lines,set):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-        print(ParseObj)
+#        print(ParseObj)
         # To add: Skip over any comments - these start with a !
 
         # On the first run through, the first line will define the element type
         if (count==0):
+            FirstRun = True
+            exponents = []
+            coeffs = []
             atomType = None
             chunkedStart = ParseObj[0].split(":")
             if (str(chunkedStart[0]).lower() in util.periodicNames ):
                 atomType = str(chunkedStart[0]).upper()
-                print("Atom type is ", atomType)
+#                print("Atom type is ", atomType)
             else:
                 print("Unknown atom type, exiting.")
                 sys.exit()
+        if (count==1):
+            maxEl = ParseObj[0]
+
+        # Check if we have an El definition line
+        if (str(ParseObj[0]).lower() in util.numEl ):
+
+            if FirstRun:
+                FirstRun = False
+            else:
+                #Process the previous angular momentum
+                sortedCoeffs = []
+                i = 0
+                while i < totalContrac:
+                    j = 0
+                    tmpCoeffs = []
+                    while j < totalCoeffs:
+                        tmpCoeffs.append(coeffs[i+j])
+                        j += totalContrac
+                    sortedCoeffs.append(tmpCoeffs)
+                    i += 1
+                # Pass the info to the internal set
+                set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+
+            orbAng = str(ParseObj[0].lower())
+            totalPrims = int(ParseObj[1])
+            totalContrac = int(ParseObj[2])
+            totalCoeffs = totalPrims * totalContrac
+
+            exponents = []
+            coeffs = []
+        else:
+            # Collect the exponents and contraction coeffs
+            exponents.append(ParseObj[0])
+            i = 0
+            while i < (len(ParseObj)-1):
+                coeffs.append(ParseObj[i+1])
+                i += 1
+
+
+#Need to trap the last entry
+    sortedCoeffs = []
+    i = 0
+    while i < totalContrac:
+        j = 0
+        tmpCoeffs = []
+        while j < totalCoeffs:
+            tmpCoeffs.append(coeffs[i+j])
+            j += totalContrac
+        sortedCoeffs.append(tmpCoeffs)
+        i += 1
+    set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+
 
 
 #---------------------------------------------------------------------------------------------------
