@@ -23,28 +23,58 @@ def ParseGbasis(lines,set):
     # Currently targetting the exact format output by WriteGbasis, rather than the slightly different
     # format used by Dave Feller.
     coeffs = []
+    skipcount = 0
+    Feller = False
     for count,line in enumerate(lines):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-#        print(ParseObj)
+        print(ParseObj)
         # To add: Skip over any comments - these start with a !
+        if (len(ParseObj[0]) != 0):
+            if (str(ParseObj[0][0]) == '!'):
+                skipcount += 1
+                continue
 
-        # On the first run through, the first line will define the element type
-        if (count==0):
-            FirstRun = True
-            exponents = []
-            coeffs = []
-            atomType = None
-            chunkedStart = ParseObj[0].split(":")
-            if (str(chunkedStart[0]).lower() in util.periodicNames ):
-                atomType = str(chunkedStart[0]).upper()
-#                print("Atom type is ", atomType)
-            else:
-                print("Unknown atom type, exiting.")
-                sys.exit()
-        if (count==1):
-            maxEl = ParseObj[0]
+        # Detect if this uses Feller's format
+        if (str(ParseObj[0][:2]).upper() == 'Z='):
+            Feller = True
+#            print("Detected Feller version of GBASIS format")
+
+        if Feller:
+            print("Do something different for Feller")
+            if ((count - skipcount) ==0):
+                # Determine atom type
+                #            print("Atomic number is ", ParseObj[0][2:])
+                if (str(ParseObj[0][2:]) in util.atomicNumber):
+                    atomType = util.atomicNumber[str(ParseObj[0][2:])]
+                    print("Atom type is ", atomType)
+                else:
+                    print("Unknown atom type, exiting.")
+                    sys.exit()
+            print("Exiting")
+            sys.exit()
+            #Next two lines will be effectively comments
+            if ((count - skipcount) ==1 or (count - skipcount) ==2):
+                print("Skipping these lines")
+                continue
+
+        else:
+            # On the first run through, the first line will define the element type
+            if ((count - skipcount) ==0):
+                FirstRun = True
+                exponents = []
+                coeffs = []
+                atomType = None
+                chunkedStart = ParseObj[0].split(":")
+                if (str(chunkedStart[0]).lower() in util.periodicNames ):
+                    atomType = str(chunkedStart[0]).upper()
+#                    print("Atom type is ", atomType)
+                else:
+                    print("Unknown atom type, exiting.")
+                    sys.exit()
+            if ((count-skipcount)==1):
+                maxEl = ParseObj[0]
 
         # Check if we have an El definition line
         if (str(ParseObj[0]).lower() in util.numEl ):
