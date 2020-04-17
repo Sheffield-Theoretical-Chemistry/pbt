@@ -6,13 +6,12 @@
 # Currently implemented:
 #
 # Basic writing of GBASIS files.
-# Basic reading of a GBASIS file.
+# Basic reading of a GBASIS file, in both PBT and Feller formats.
 #
 # Known limitations:
 #
 # Reading of GBASIS files only works for a single atom and single basis set.
-# When reading, comments and blank lines may break parser.
-# No reading of GBASIS files in Feller alternative format.
+# When reading, blank lines may break parser.
 #
 import sys
 import util
@@ -25,39 +24,53 @@ def ParseGbasis(lines,set):
     coeffs = []
     skipcount = 0
     Feller = False
+    skipline = False
+    skipdouble = False
+    fellerFirst = True
+
     for count,line in enumerate(lines):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-        print(ParseObj)
+#        print(ParseObj)
         # To add: Skip over any comments - these start with a !
         if (len(ParseObj[0]) != 0):
             if (str(ParseObj[0][0]) == '!'):
                 skipcount += 1
                 continue
+        # Skip over the line if logic has detected that
+        if skipline:
+            skipcount += 1
+#            print("Skipping the line")
+            if skipdouble:
+                skipdouble = False
+            else:
+                skipline = False
+            continue
 
         # Detect if this uses Feller's format
         if (str(ParseObj[0][:2]).upper() == 'Z='):
             Feller = True
+            FirstRun = True
 #            print("Detected Feller version of GBASIS format")
 
-        if Feller:
-            print("Do something different for Feller")
+        if Feller and fellerFirst:
             if ((count - skipcount) ==0):
                 # Determine atom type
                 #            print("Atomic number is ", ParseObj[0][2:])
                 if (str(ParseObj[0][2:]) in util.atomicNumber):
                     atomType = util.atomicNumber[str(ParseObj[0][2:])]
-                    print("Atom type is ", atomType)
+#                    print("Atom type is ", atomType)
                 else:
                     print("Unknown atom type, exiting.")
                     sys.exit()
-            print("Exiting")
-            sys.exit()
+#            print("Exiting")
+#            sys.exit()
             #Next two lines will be effectively comments
-            if ((count - skipcount) ==1 or (count - skipcount) ==2):
-                print("Skipping these lines")
-                continue
+            skipline = True
+            skipdouble = True
+            fellerFirst = False
+            continue
 
         else:
             # On the first run through, the first line will define the element type
@@ -103,6 +116,33 @@ def ParseGbasis(lines,set):
 
             exponents = []
             coeffs = []
+
+        elif (Feller and str(ParseObj[0][:6]).lower()=='numexp'):
+            if FirstRun:
+                FirstRun = False
+            else:
+                #Process the previous angular momentum
+                sortedCoeffs = []
+                i = 0
+                while i < totalContrac:
+                    j = 0
+                    tmpCoeffs = []
+                    while j < totalCoeffs:
+                        tmpCoeffs.append(coeffs[i+j])
+                        j += totalContrac
+                    sortedCoeffs.append(tmpCoeffs)
+                    i += 1
+                # Pass the info to the internal set
+                set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+
+            totalPrims = int(ParseObj[0][7:])
+            totalContrac = len(ParseObj) - 1
+            orbAng = str(ParseObj[1][-1:].lower())
+            totalCoeffs = totalPrims * totalContrac
+
+            exponents = []
+            coeffs = []
+
         else:
             # Collect the exponents and contraction coeffs
             exponents.append(ParseObj[0])
