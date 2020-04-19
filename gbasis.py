@@ -10,7 +10,7 @@
 #
 # Known limitations:
 #
-# Reading of GBASIS files only works for a single atom and single basis set.
+# Reading of GBASIS files only works for a single atom and single basis set. This isn't trapped.
 # When reading, blank lines may break parser.
 #
 import sys
