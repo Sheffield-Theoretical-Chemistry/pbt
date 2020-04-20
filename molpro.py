@@ -48,7 +48,7 @@ def ParseInt(lines,set):
                 if ((len(ParseObj[1]) > 2) and (str(ParseObj[1][0:3]).lower() == 'ecp')):
                     print("ECPs not yet supported")
                     sys.exit()
-        
+
         # Check if the line starts with an element
         if (str(ParseObj[0]).lower() in util.periodicNames ):
             # The next line will be a comment, so flag it to be skipped
@@ -83,7 +83,7 @@ def ParseInt(lines,set):
             totalContrac = int(ParseObj[jumpPoint+2])
             # Remaining entries on the line are the contraction patterns
             conPatterns = []
-            counter = jumpPoint+3            
+            counter = jumpPoint+3
             while counter < len(ParseObj):
                 conPatterns.append(ParseObj[counter])
                 counter += 1
@@ -312,7 +312,7 @@ def WriteExt(set,precis,outfile):
         # Make a string of the exponents, sorted in reverse numerical order and truncated at precis
         FormattedExp = []
         for exp in entry.exponents:
-            FormattedExp.append('{number:.{p}g}'.format(number=float(exp), p = precis))
+            FormattedExp.append('{number:.{p}E}'.format(number=float(exp), p = precis))
         if (entry.contraction):
             # Don't sort exponents in the contracted case as chaos will ensue.
             ExpString = ",".join(FormattedExp)
@@ -326,15 +326,33 @@ def WriteExt(set,precis,outfile):
                 # Make a string of each set of contraction coefficients
                 FormattedPattern = []
                 FirstCoeff = False
+                leadingZero = False
+                numberOfZeros = 0
+                nonZeroEntry = 0
+                # Test if only one contraction coefficient is non-zero
                 for count,coeff in enumerate(pattern):
-                    # Trap cases where leading contraction coeffs are zero
-                    if (coeff != '0.0'):
+                    if (float(coeff).is_integer and ((float(coeff) - 0.0) == 0.0)):
+                        numberOfZeros += 1
+                    else:
+                        nonZeroEntry = count
+#                print("Total number of zeros in contraction is ", numberOfZeros)
+                if ((len(pattern) - numberOfZeros) == 1):
+#                    print("Just a single non-zero contraction coeff")
+                    leadingZero = True
+
+                if leadingZero:
+                    FormattedPattern.append('{number:.{p}E}'.format(number=float(pattern[nonZeroEntry]), p = precis))
+#                    print("Non-zero entry is ", FormattedPattern)
+                    CoeffString = ",".join(FormattedPattern)
+                    outfile.write('c,%s.%s,%s\n' % (nonZeroEntry+1, nonZeroEntry+1, CoeffString))
+                else:
+                    for count,coeff in enumerate(pattern):
                         FormattedPattern.append('{number:.{p}E}'.format(number=float(coeff), p = precis))
                         if FirstCoeff is False:
                             FirstCoeff = True
                             StartCoeff = count + 1
-                CoeffString = ",".join(FormattedPattern)
-                outfile.write('c,%s.%s,%s\n' % (StartCoeff, len(pattern), CoeffString))
+                    CoeffString = ",".join(FormattedPattern)
+                    outfile.write('c,%s.%s,%s\n' % (StartCoeff, len(pattern), CoeffString))
 
 #---------------------------------------------------------------------------------------------------
 
