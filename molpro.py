@@ -2,6 +2,7 @@
 # Currently implemented:
 #
 # Read Molpro external format.
+# Read Molpro internal format.
 # Converts even3 syntax to exponents, see: https://www.molpro.net/info/2012.1/doc/manual/node118.html
 # Write Molpro external format.
 # Write Molpro internal format (not well tested for contracted sets).
