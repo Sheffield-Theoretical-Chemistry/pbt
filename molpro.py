@@ -20,8 +20,10 @@ def ParseInt(lines,set):
     # Reads in Molpro internal (libmol) basis set format
     # This is a fixed format, hence some extra variables are used to keep track of numbers
     skipcount = 0
+    numProcessed = 0
     skipline = False
     collectEls = False
+    changeAtom = False
     coeffs=[]
     for count,line in enumerate(lines):
         if (count == 0):
@@ -57,6 +59,10 @@ def ParseInt(lines,set):
             if collectEls:
                 # Time to process what we collected on the previous run
                 ProcessInt(set,atomtype,orbAng,totalPrims,totalContrac,conPatterns,coeffs)
+                if changeAtom:
+                    set[numProcessed].changeatom = True
+                    changeAtom = False 
+                numProcessed += 1
                 # Reset coeffs ready for the next run
                 coeffs = []
             else:
@@ -66,6 +72,8 @@ def ParseInt(lines,set):
             currentatom = str(ParseObj[0]).upper()
             if (currentatom != atomtype):
                 # Looks like we have a new atomtype
+                if not FirstRun:
+                    changeAtom = True
                 atomtype = ''.join(currentatom)
 #                print("New atom type is ", atomtype)
             # Next entry is the orbital angular momentum
@@ -95,6 +103,9 @@ def ParseInt(lines,set):
                 while i < len(ParseObj):
                     coeffs.append(ParseObj[i])
                     i += 1
+        #No longer first run, as long as we haven't been counting blank lines
+        if (len(ParseObj[0]) != 0):
+            FirstRun = False
 
 #Need to catch the case where we have the last entry in a file
     if collectEls:
