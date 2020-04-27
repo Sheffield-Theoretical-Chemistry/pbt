@@ -32,7 +32,7 @@ def ParseGbasis(lines,set):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-#        print(ParseObj)
+        print(ParseObj)
         # To add: Skip over any comments - these start with a !
         if (len(ParseObj[0]) != 0):
             if (str(ParseObj[0][0]) == '!'):
@@ -64,12 +64,35 @@ def ParseGbasis(lines,set):
                 else:
                     print("Unknown atom type, exiting.")
                     sys.exit()
-#            print("Exiting")
-#            sys.exit()
             #Next two lines will be effectively comments
             skipline = True
             skipdouble = True
             fellerFirst = False
+            continue
+
+        elif (Feller and str(ParseObj[0][:2]).lower()=='z='):
+            # New atom or basis definition
+            print("Detected change of atom")
+            # Process the data collected on previous run
+            sortedCoeffs = []
+            i = 0
+            while i < totalContrac:
+                j = 0
+                tmpCoeffs = []
+                while j < totalCoeffs:
+                    tmpCoeffs.append(coeffs[i+j])
+                    j += totalContrac
+                sortedCoeffs.append(tmpCoeffs)
+                i += 1
+            set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+            if (str(ParseObj[0][2:]) in util.atomicNumber):
+                atomType = util.atomicNumber[str(ParseObj[0][2:])]
+                print("Atom type is ", atomType)
+            else:
+                print("Unknown atom type, exiting.")
+                sys.exit()
+            skipline = True
+            skipdouble = True
             continue
 
         else:
