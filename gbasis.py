@@ -10,7 +10,6 @@
 #
 # Known limitations:
 #
-# Reading of GBASIS files only works for a single atom and single basis set. This isn't trapped.
 # When reading, blank lines may break parser.
 #
 import sys
@@ -23,16 +22,18 @@ def ParseGbasis(lines,set):
     # format used by Dave Feller.
     coeffs = []
     skipcount = 0
+    numProcessed = 0
     Feller = False
     skipline = False
     skipdouble = False
     fellerFirst = True
+    changeNow = False
 
     for count,line in enumerate(lines):
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
 # Debug statement - uncomment to print the line in list format
-        print(ParseObj)
+#        print(ParseObj)
         # To add: Skip over any comments - these start with a !
         if (len(ParseObj[0]) != 0):
             if (str(ParseObj[0][0]) == '!'):
@@ -72,7 +73,7 @@ def ParseGbasis(lines,set):
 
         elif (Feller and str(ParseObj[0][:2]).lower()=='z='):
             # New atom or basis definition
-            print("Detected change of atom")
+#            print("Detected change of atom")
             # Process the data collected on previous run
             sortedCoeffs = []
             i = 0
@@ -85,9 +86,11 @@ def ParseGbasis(lines,set):
                 sortedCoeffs.append(tmpCoeffs)
                 i += 1
             set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+            numProcessed += 1
+            changeNow = True
             if (str(ParseObj[0][2:]) in util.atomicNumber):
                 atomType = util.atomicNumber[str(ParseObj[0][2:])]
-                print("Atom type is ", atomType)
+#                print("Atom type is ", atomType)
             else:
                 print("Unknown atom type, exiting.")
                 sys.exit()
@@ -96,20 +99,37 @@ def ParseGbasis(lines,set):
             continue
 
         else:
+            # How many colons on the line? These are only used on atom definition lines
+            numColons = str(ParseObj[0]).count(':')
             # On the first run through, the first line will define the element type
-            if ((count - skipcount) ==0):
+            if ((count - skipcount) ==0) or numColons > 0:
                 FirstRun = True
-                exponents = []
-                coeffs = []
-                atomType = None
                 chunkedStart = ParseObj[0].split(":")
                 if (str(chunkedStart[0]).lower() in util.periodicNames ):
+                    if ((count - skipcount) != 0):
+                        # Flag that we've changed atom
+                        changeNow = True
+                        # Process the previous El here. This sorting should be a sub-routine!
+                        sortedCoeffs = []
+                        i = 0
+                        while i < totalContrac:
+                            j = 0
+                            tmpCoeffs = []
+                            while j < totalCoeffs:
+                                tmpCoeffs.append(coeffs[i+j])
+                                j += totalContrac
+                            sortedCoeffs.append(tmpCoeffs)
+                            i += 1
+                        set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
                     atomType = str(chunkedStart[0]).upper()
 #                    print("Atom type is ", atomType)
                 else:
                     print("Unknown atom type, exiting.")
                     sys.exit()
-            if ((count-skipcount)==1):
+                exponents = []
+                coeffs = []
+            if ((count - skipcount) ==1):
+                # This will break if maxEl changes in the file, but isn't currently used
                 maxEl = ParseObj[0]
 
         # Check if we have an El definition line
@@ -131,6 +151,10 @@ def ParseGbasis(lines,set):
                     i += 1
                 # Pass the info to the internal set
                 set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+                numProcessed += 1
+                if changeNow:
+                    set[numProcessed].changeatom = True
+                    changeNow = False
 
             orbAng = str(ParseObj[0].lower())
             totalPrims = int(ParseObj[1])
@@ -157,6 +181,10 @@ def ParseGbasis(lines,set):
                     i += 1
                 # Pass the info to the internal set
                 set.append(Basis(atomType, orbAng, exponents, sortedCoeffs))
+                if changeNow:
+                    set[numProcessed].changeatom = True
+                    changeNow = False
+                numProcessed += 1
 
             totalPrims = int(ParseObj[0][7:])
             totalContrac = len(ParseObj) - 1
