@@ -1,12 +1,15 @@
 # Input and output filters for the ACESII/CFour program
 # Currently implemented:
-# Write ACES format.
+# Write CFOUR format.
 # This based on the GENBAS format specification found at:
 # http://slater.chemie.uni-mainz.de/xaces2/aces2man/node17.html
+#
+# Read CFOUR format
 #
 # Known limitations:
 # Currently only supports a single set in a file
 # No working CFour install, so resulting files not verified
+# No support for ECPs in any form
 #
 import sys
 import util
@@ -89,3 +92,61 @@ def WriteCfour(set,precis,outfile):
             outfile.write('\n')
 
     print("You may want to change 'BASNAME' to something more sensible.")
+
+#---------------------------------------------------------------------------------------------------
+
+def ParseCfour(lines,set):
+    print('Reading CFOUR format basis sets is still a WIP. Please check carefully!')
+    skipcount = 0
+    totalEls = 0
+    exponents = []
+    contractCoeffs = []
+    newEl = False
+    ElCount = 0
+    skipBlank = False
+    newContract = False
+    for count,line in enumerate(lines):
+        # Replace any newlines and split data into a list
+        ParseObj = line.replace("\n", "").split()
+# Debug statement - uncomment to print the line in list format
+        #print(ParseObj)
+        # Grab the atom type from the first line
+        if (count == 0):
+            Atom = ParseObj[0].split(":")[0]
+        elif (count == 3):
+            totalEls = ParseObj[0]
+        elif (count == 4):
+            Els = ParseObj
+        elif (count == 5):
+            noContracted = ParseObj
+        elif (count == 6):
+            noPrimitives = ParseObj
+        elif (count == 7):
+            newEl = True
+        # Read the information for an el block (exponents and contraction coeffs)
+        if newEl and (count > 7):
+            if (len(exponents) < int(noPrimitives[ElCount])):
+                for exp in ParseObj:
+                    exponents.append(exp)
+            elif (len(exponents) == int(noPrimitives[ElCount])) and (len(ParseObj) == 0) and (skipBlank == False):
+                skipBlank = True
+                TotalContract = int(noContracted[ElCount]) * int(noPrimitives[ElCount])
+                newContract = True
+            elif skipBlank and (len(contractCoeffs) < TotalContract):
+                if newContract:
+                    sortContract = [[] for i in range(int(noContracted[ElCount]))]
+                    newContract = False
+                for i,coeff in enumerate(ParseObj):
+                    sortContract[i].append(coeff)
+                    contractCoeffs.append(coeff)
+            elif (len(contractCoeffs) == TotalContract) and (len(ParseObj) == 0):
+                # We should have all the exponents and contract coeffs for this El
+                #print(sortContract)
+                set.append(Basis(Atom, util.letterEl[Els[ElCount]], exponents, sortContract))
+                exponents = []
+                contractCoeffs = []
+                ElCount += 1
+                skipBlank = False
+    # Catch the final el before exiting
+    set.append(Basis(Atom, util.letterEl[Els[ElCount]], exponents, sortContract))
+

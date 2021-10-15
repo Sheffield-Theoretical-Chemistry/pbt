@@ -8,6 +8,11 @@ atomicNumber = {'1': 'h', '2': 'he', '3': 'li', '4': 'be', '5': 'b', '6': 'c', '
 numEl = {'s': 0, 'p': 1, 'd': 2, 'f': 3, 'g': 4, 'h': 5, 'i': 6, 'k': 7, 'l': 8, 'm': 9, 'n': 10, 'o': 11,
 'q': 12, 'r': 13}
 
+# Dictionary of letters for orbital angular momentum. j is skipped as it is special (not sure if this
+# is done in Gaussian?). Assumed an alphabetical progression after that, skipping a second occurance of s/p.
+letterEl = {'0': 's', '1': 'p', '2': 'd', '3': 'f', '4': 'g', '5': 'h', '6': 'i', '7': 'k', '8': 'l',
+'9': 'm', '10': 'n', '11': 'o', '12': 'q', '13': 'r'}
+
 def getMaxEl(set):
 #Determines the maximum angular momentum within a set, returning a list of numerical values
     maxEl = []
