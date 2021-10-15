@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Python Basis Tool (pbt) script for reading in Molpro external format and writing ACESII
+# Python Basis Tool (pbt) script for reading in Molpro external format and writing CFOUR
 #
 # Please check $program.py for more info and limitations.
 #
@@ -13,7 +13,7 @@ set=[]
 precis=6
 
 if (len(sys.argv) < 2):
-    print("Usage: molext2aces.py infile [outfile]")
+    print("Usage: molext2cfour.py infile [outfile]")
     print("The second of these is optional.")
     sys.exit()
 
@@ -36,6 +36,6 @@ molpro.ParseExt(lines,set)
 #for entry in set:
 #    print(entry.info())
 #
-import aces
-aces.WriteAces(set,precis,outfile)
+import cfour
+cfour.WriteCfour(set,precis,outfile)
 outfile.close()

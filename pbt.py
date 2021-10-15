@@ -28,6 +28,7 @@ parser.add_argument("-onwc", "--output-nwchem", help="request output in NWChem f
 parser.add_argument("-otrb", "--output-turbo", help="request output in TURBOMOLE format", metavar="OUTPUT_FILE")
 parser.add_argument("-ogbs", "--output-gbasis", help="request output in GBASIS format", metavar="OUTPUT_FILE")
 parser.add_argument("-ogau", "--output-gauss", help="request output in GAUSSIAN format", metavar="OUTPUT_FILE")
+parser.add_argument("-oc4", "--output-cfour", help="request output in CFOUR format", metavar="OUTPUT_FILE")
 parser.add_argument("-p", "--precision", help="request SIGFIGS significant figures in output", metavar="SIGFIGS")
 parser.add_argument("-v", "--view", help="filename for plotting the basis set primitives as PNG", metavar="PLOT_FILE")
 args = parser.parse_args()
@@ -94,6 +95,12 @@ if args.output_gauss:
     print('Writing to file', args.output_gauss)
     from gaussian import WriteGauss as wgau
     wgau(set,precis,outfile)
+    defaultOut=False
+if args.output_cfour:
+    outfile = open(args.output_cfour, 'w')
+    print('Writing to file', args.output_cfour)
+    from cfour import WriteCfour as wcfour
+    wcfour(set,precis,outfile)
     defaultOut=False
 if defaultOut:
     #Default to printing molpro external to sys.stdout

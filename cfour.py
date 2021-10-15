@@ -12,7 +12,7 @@ import sys
 import util
 from basclas import Basis
 
-def WriteAces(set,precis,outfile):
+def WriteCfour(set,precis,outfile):
     comp = util.getPrim(set)
     contcomp = util.getContract(set)
 
