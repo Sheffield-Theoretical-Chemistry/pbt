@@ -10,7 +10,7 @@ from basclas import Basis
 # Ensure set is a global object
 set=[]
 # Number of sig figs in the output
-precis=6
+precis=7
 
 if (len(sys.argv) < 2):
     print("Usage: molext2gbasis.py infile [outfile]")

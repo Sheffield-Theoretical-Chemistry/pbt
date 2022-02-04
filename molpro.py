@@ -31,8 +31,8 @@ def ParseInt(lines,set):
             atomtype = None
         # Remove the newlines and split into a list
         ParseObj = line.replace("\n", "").split()
-# Debug statement - uncomment to print the line in list format
-#        print(ParseObj)
+        # Debug statement - uncomment to print the line in list format
+        print(ParseObj)
         # Skip over any comments - these start with a star in libmol
         if (len(ParseObj[0]) != 0):
             if (str(ParseObj[0][0]) == '*'):
@@ -152,10 +152,19 @@ def ParseExt(lines,set):
         if (count == 0):
             FirstRun = True
             atomtype = None
+        # Throw an error if the final character is a comma 
+        testLine=line.replace("\n", "")
+        if (len(testLine) != 0) and (testLine[-1] == ','):
+            print("The following line ends in a comma:")
+            print(line, end="")
+            print("Please check and fix. Exiting.")
+            sys.exit()
         # Remove any white space and newlines, and split at comma
-        ParseObj = line.replace(" ", "").replace("\n", "").split(',')
+#        ParseObj = line.replace(" ", "").replace("\n", "").split(',')
+        # New version attempts to remove any tab characters
+        ParseObj = line.replace(",\t", ",").replace("\t", ",").replace(" ", "").replace("\n", "").split(',')
 # Debug statement - uncomment to print the line in list format
-#        print(ParseObj)
+        print(ParseObj)
         # Jump over any terminating semi-colons (only at end of line, parses sets from KAP website)
         if (len(ParseObj[0]) != 0) and (ParseObj[-1][-1] == ';'):
             ParseObj[-1] = ParseObj[-1][0:-1]

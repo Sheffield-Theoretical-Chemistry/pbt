@@ -10,7 +10,7 @@ from basclas import Basis
 # Ensure set is a global object
 set=[]
 # Number of sig figs in the output
-precis=8
+precis=9
 
 if (len(sys.argv) < 2):
     print("Usage: gbasis2gbasis.py infile [outfile]")

@@ -11,6 +11,8 @@
 # Known limitations:
 #
 # When reading, blank lines may break parser.
+# For the Feller format, the number of comment lines is assumed
+# For the Feller format sometimes a rogue space in the NUMEXP line can break things
 #
 import sys
 import util
@@ -18,8 +20,6 @@ from basclas import Basis
 
 def ParseGbasis(lines,set):
     # Reads in the GBASIS basis set format
-    # Currently targetting the exact format output by WriteGbasis, rather than the slightly different
-    # format used by Dave Feller.
     coeffs = []
     skipcount = 0
     numProcessed = 0
