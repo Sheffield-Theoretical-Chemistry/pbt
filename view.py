@@ -108,14 +108,14 @@ def ViewPNG(set,viewfile,filename,save):
     import matplotlib.pyplot as plt
     # Create python list of lists (all exponents)
     allExps = []
-    # Grab angular momentum as labels, offset by a blank string
-    labels = ['']
+    # Grab angular momentum as labels
+    labels = []
     for entry in set:
         workingExp = [float(i) for i in entry.exponents]
         allExps.append(workingExp)
         labels.append(entry.el.lower())
     # Convert to numpy array
-    allExps = np.array(allExps)
+    allExps = np.array(allExps, dtype=object)
     # Debug print
 #    print(allExps, allExps.shape)
     # Start plotting
@@ -123,7 +123,7 @@ def ViewPNG(set,viewfile,filename,save):
     ax = fig.add_subplot(1, 1, 1)
     # Scale the Tableau RGB values to the [0, 1] range, which is the format matplotlib accepts.
     trimTableau=[]
-    sets = len(labels) - 1
+    sets = len(labels)
     for i in range(sets):
         r, g, b = tableau20[i]
         trimTableau.append((r / 255., g / 255., b / 255.))
@@ -132,6 +132,11 @@ def ViewPNG(set,viewfile,filename,save):
     ax.eventplot(allExps, colors=trimTableau, orientation='vertical', linelengths=0.75)
     # Switch to a log plot to make diffuse exponents more visible
     ax.set_yscale('log')
+    # Creates a list of x_tick positions based on length of labels
+    x_pos = [x for x in range(len(labels))]
+    # Sets the position of the x_ticks based on that list
+    ax.set_xticks(x_pos)
+    # Labels the x_ticks with the angular momentum 
     ax.set_xticklabels(labels)
     if save:
         plt.savefig(viewfile)
